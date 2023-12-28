@@ -36,11 +36,11 @@ Before using this script, ensure the following prerequisites are met:
 Run the script with optional arguments:
 
 ```bash
-npx ts-node auto_commit.ts [JIRA_ISSUE_ID] --open-pr --force
+npx ts-node auto_commit.ts [JIRA_ISSUE_ID] --update-pr --force
 ```
 
 - `JIRA_ISSUE_ID`: (Optional) JIRA issue ID for the changes being committed.
-- `--open-pr`: (Optional) Automatically opens a pull request on GitHub.
+- `--update-pr`: (Optional) Automatically opens/updates a pull request on GitHub.
 - `--force`: (Optional) Forces push changes to the remote repository.
 
 ### Bash Shortcut

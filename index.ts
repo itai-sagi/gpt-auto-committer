@@ -2,11 +2,9 @@ import axios from 'axios';
 import * as child_process from 'child_process';
 import fetch from 'node-fetch';
 import { OpenAI } from 'openai';
+import {CommitData, GitHubService} from "./github";
 
-interface CommitData {
-    title: string;
-    body: string;
-}
+
 
 class GPTAutoCommitter {
     private jiraEmail: string | undefined = process.env.JIRA_EMAIL;
@@ -15,12 +13,14 @@ class GPTAutoCommitter {
     private githubToken: string | undefined = process.env.GITHUB_ACCESS_TOKEN;
 
     private openai: OpenAI;
+    private githubService: GitHubService;
 
     constructor() {
         if (!process.env.OPENAI_API_KEY) {
             throw new Error('No OpenAI API key');
         }
         this.openai = new OpenAI();
+        this.githubService = new GitHubService();
     }
 
     private async execShellCommand(cmd: string): Promise<string> {
@@ -35,28 +35,33 @@ class GPTAutoCommitter {
     }
 
     private async getJiraIssue(issueId: string): Promise<string> {
+        console.log(issueId);
         const url = `https://${this.jiraDomain}.atlassian.net/rest/api/2/issue/${issueId}`;
+        const auth = `Basic ${Buffer.from(`${this.jiraEmail}:${this.jiraToken}`).toString('base64')}`;
         const response = await fetch(url, {
             method: 'GET',
             headers: {
-                'Authorization': `Basic ${Buffer.from(`${this.jiraEmail}:${this.jiraToken}`).toString('base64')}`,
+                'Authorization': auth,
                 'Accept': 'application/json',
             },
         });
         const data = await response.json();
+        if (response.status > 299) {
+            throw new Error(`Failed getting jira issue: ${response.body}`)
+        }
         return `Jire Ticket ID: ${issueId}\n${data.fields.summary}\n${data.fields.description}, link: https://${this.jiraDomain}.atlassian.net/browse/${issueId}`;
     }
 
     private async generatePullRequestDescription(diff: string, jiraContent?: string): Promise<CommitData> {
         const prompt = `
-        Please create a description for the Pull Request based on the following changes:\n\n${diff}\n${jiraContent ? '\nAdditional context from JIRA:' + jiraContent : ''} 
+        You are a SW Developer, Please create a description for the Pull Request based on the following changes:\n\n${diff}\n${jiraContent ? '\nAdditional context from JIRA:' + jiraContent : ''} 
         
         Guidelines:
             1. Description should be in markdown format
             2. If jira issue exists, add a link to it.
             3. Outline major changes in the diff and try to reason them
             4. Use emojis where appropriate to bring the description to life
-            5. at the end of the PR add a snazzy and a little sarcastic marketing message to advertise the tool "gpt-auto-committer", it should include a link to https://github.com/itai-sagi/gpt-auto-committer
+            5. At the end of the PR add a little sarcastic marketing message with the link https://github.com/itai-sagi/gpt-auto-committer & saying that this PR was created by GPT Auto Committer
             
             the response should be json and adhere to the following structure:   
             
@@ -79,50 +84,12 @@ class GPTAutoCommitter {
         return response;
     }
 
-    private async getGitRemoteInfo(): Promise<{ owner: string, repo: string }> {
-        const gitRemoteOutput = child_process.execSync('git remote get-url origin').toString().trim();
-        const match = gitRemoteOutput.match(/github\.com[:\/](.*?)\/(.*?)\.git/);
-        if (!match || match.length < 3) {
-            throw new Error('Failed to parse GitHub remote URL');
-        }
-        const [, owner, repo] = match;
-        return { owner, repo };
-    }
-
-    private async createPullRequest(branchName: string, prText: CommitData, targetBranch: string = 'master'): Promise<void> {
-        const { owner, repo } = await this.getGitRemoteInfo();
-
-        const url = `https://api.github.com/repos/${owner}/${repo}/pulls`;
-
-        const requestBody = {
-            ...prText,
-            head: branchName,
-            base: targetBranch,
-        };
-
-        console.log(requestBody);
-        const config = {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${this.githubToken}`,
-                'Accept': 'application/vnd.github.v3+json', // Updated GitHub API version
-            },
-        };
-
-        const response = await axios.post(url, requestBody, config);
-
-        if (response.status !== 201) {
-            console.log(response.data.errors);
-            throw new Error('Failed to create pull request');
-        }
-
-        console.log('Pull request created successfully!');
-    }
-
     private async generateCommitMessage(diff: string, jiraContent?: string): Promise<string> {
         const prompt = `
-        Please create a commit message for the following diff of a Git repository:\n\n${diff}\n${jiraContent ? '\nAdditional context from JIRA:' + jiraContent : ''}
+        You are a SW Developer, craft a commit message for the following diff of a Git repository:\n\n${diff}\n${jiraContent ? '\nAdditional context from JIRA:' + jiraContent : ''}
         it should adhere to conventional commits, so determine if it's a feat, fix, chore, or otherwise.
+        the commit message should be relevant to the files committed while referencing the JIRA Issue's content if its' applicable.
+        The commit message should explain the changes to the best of your ability.
     `;
 
         const gptResponse = await this.openai.chat.completions.create({
@@ -150,13 +117,14 @@ class GPTAutoCommitter {
     }
 
     public async run(): Promise<void> {
-        const jiraIssueId = process.argv[2]; // Optional JIRA issue ID provided as an argument.
-        const shouldOpenPR = process.argv.includes('--open-pr');
+        console.log(process.argv)
+        const jiraIssueId = process.argv[2].startsWith('--') ? null : process.argv[2]; // Optional JIRA issue ID provided as an argument.
+        const shouldUpdatePullRequest = process.argv.includes('--update-pr');
 
         console.log(`Running for Jira Issue: ${jiraIssueId}`);
-        console.log(`Should open a PR: ${shouldOpenPR}`);
+        console.log(`Should create/update a PR: ${shouldUpdatePullRequest}`);
 
-        if (shouldOpenPR && !this.githubToken) {
+        if (shouldUpdatePullRequest && !this.githubToken) {
             throw new Error('No GitHub access token');
         }
 
@@ -176,10 +144,12 @@ class GPTAutoCommitter {
                 console.error("Didn't commit changes");
             }
 
-            if (shouldOpenPR) {
+            if (shouldUpdatePullRequest) {
+                const diff = await this.execShellCommand(`git diff HEAD ${this.getCurrentBranch()}`);
+
                 const prText = await this.generatePullRequestDescription(diff, jiraContent);
 
-                await this.createPullRequest(this.getCurrentBranch(), prText);
+                await this.githubService.createOrUpdatePullRequest(this.getCurrentBranch(), prText);
             }
             console.log('Changes committed and pushed successfully!');
         } catch (error) {

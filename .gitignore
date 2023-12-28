@@ -30,3 +30,4 @@
 # OS or IDE files
 .DS_Store
 Thumbs.db
+.idea

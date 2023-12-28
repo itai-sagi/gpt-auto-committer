@@ -86,7 +86,7 @@ export class GitHubService {
         console.log('Pull request updated successfully!');
     }
 
-    private async createPullRequest(branchName: string, prText: CommitData, targetBranch: string = 'master'): Promise<void> {
+    private async createPullRequest(branchName: string, prText: CommitData, targetBranch: string): Promise<void> {
         const { owner, repo } = await this.getGitRemoteInfo();
         const url = `https://api.github.com/repos/${owner}/${repo}/pulls`;
 
@@ -107,7 +107,7 @@ export class GitHubService {
         const response = await axios.post(url, requestBody, config);
 
         if (response.status !== 201) {
-            console.log(response.data.errors);
+            console.log(response.data.body);
             throw new Error('Failed to create pull request');
         }
 

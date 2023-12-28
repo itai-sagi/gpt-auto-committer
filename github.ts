@@ -25,7 +25,7 @@ export class GitHubService {
         return { owner, repo };
     }
 
-    public async createOrUpdatePullRequest(branchName: string, prText: CommitData, targetBranch: string = 'master'): Promise<void> {
+    public async createOrUpdatePullRequest(branchName: string, prText: CommitData, targetBranch: string): Promise<void> {
         const existingPRNumber = await this.getExistingPullRequest(branchName, targetBranch);
 
         if (existingPRNumber) {
@@ -35,7 +35,7 @@ export class GitHubService {
         }
     }
 
-    private async getExistingPullRequest(branchName: string, targetBranch: string = 'master'): Promise<number | undefined> {
+    private async getExistingPullRequest(branchName: string, targetBranch: string): Promise<number | undefined> {
         const { owner, repo } = await this.getGitRemoteInfo();
         const url = `https://api.github.com/repos/${owner}/${repo}/pulls`;
 

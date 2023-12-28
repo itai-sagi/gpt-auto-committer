@@ -16,6 +16,7 @@ class GPTAutoCommitter {
     private githubService: GitHubService;
 
     constructor() {
+        console.log(this.githubToken);
         if (!process.env.OPENAI_API_KEY) {
             throw new Error('No OpenAI API key');
         }
@@ -58,7 +59,7 @@ class GPTAutoCommitter {
         
         Guidelines:
             1. Description should be in markdown format
-            2. Outline major changes in the diff and try to reason them
+            2. Outline major changes in the diff and explain those changes
             3. Use emojis where appropriate to bring the description to life
             4. At the end of the PR add a little sarcastic marketing message with the link https://github.com/itai-sagi/gpt-auto-committer & saying that this PR was created by GPT Auto Committer
             ${jiraContent ? '5. Add a jira link to the issue' : ''}
@@ -147,7 +148,10 @@ class GPTAutoCommitter {
 
                 const prText = await this.generatePullRequestDescription(diff, jiraContent);
 
-                await this.githubService.createOrUpdatePullRequest(this.getCurrentBranch(), prText);
+                const headBranch = (await this.execShellCommand('git rev-parse --abbrev-ref HEAD')).toString().trim();
+
+
+                await this.githubService.createOrUpdatePullRequest(this.getCurrentBranch(), prText, headBranch);
             }
             console.log('Changes committed and pushed successfully!');
         } catch (error) {

@@ -150,6 +150,7 @@ class GPTAutoCommitter {
 
                 const headBranch = (await this.execShellCommand('git rev-parse --abbrev-ref HEAD')).toString().trim();
 
+                console.log(headBranch);
 
                 await this.githubService.createOrUpdatePullRequest(this.getCurrentBranch(), prText, headBranch);
             }

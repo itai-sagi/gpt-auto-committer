@@ -58,11 +58,10 @@ class GPTAutoCommitter {
         
         Guidelines:
             1. Description should be in markdown format
-            2. If jira issue exists, add a link to it.
-            3. Outline major changes in the diff and try to reason them
-            4. Use emojis where appropriate to bring the description to life
-            5. At the end of the PR add a little sarcastic marketing message with the link https://github.com/itai-sagi/gpt-auto-committer & saying that this PR was created by GPT Auto Committer
-            
+            2. Outline major changes in the diff and try to reason them
+            3. Use emojis where appropriate to bring the description to life
+            4. At the end of the PR add a little sarcastic marketing message with the link https://github.com/itai-sagi/gpt-auto-committer & saying that this PR was created by GPT Auto Committer
+            ${jiraContent ? '5. Add a jira link to the issue' : ''}
             the response should be json and adhere to the following structure:   
             
             interface CommitData { title: string, body: string }
@@ -117,7 +116,6 @@ class GPTAutoCommitter {
     }
 
     public async run(): Promise<void> {
-        console.log(process.argv)
         const jiraIssueId = process.argv[2].startsWith('--') ? null : process.argv[2]; // Optional JIRA issue ID provided as an argument.
         const shouldUpdatePullRequest = process.argv.includes('--update-pr');
 

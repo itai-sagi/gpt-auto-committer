@@ -143,6 +143,8 @@ class GPTAutoCommitter {
     private async generateCommitMessage(diff: string, jiraContent?: string): Promise<string> {
         const prompt= this.templates.prDescription({ diff, jiraContent });
 
+
+
         const gptResponse = await this.openai.chat.completions.create({
             model: 'gpt-3.5-turbo-1106',
             messages: [{
@@ -150,8 +152,6 @@ class GPTAutoCommitter {
                 role: 'user',
             }],
             max_tokens: 2500,
-            n: 1,
-            stop: ['\n'],
         });
 
         return gptResponse.choices[0].message.content || '';

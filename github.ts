@@ -1,7 +1,7 @@
 import axios from 'axios';
 import * as child_process from 'child_process';
 
-export interface CommitData {
+export interface ChangeRequestData {
     title: string;
     body: string;
 }
@@ -36,7 +36,7 @@ export class GitHubService {
         }
     }
 
-    public async createOrUpdatePullRequest(branchName: string, prText: CommitData, targetBranch: string): Promise<string> {
+    public async createOrUpdatePullRequest(branchName: string, prText: ChangeRequestData, targetBranch: string): Promise<string> {
         await this.ensureGitInfoInitialized(); // Ensuring gitInfo is ready before execution
 
         if (branchName === targetBranch) {
@@ -71,11 +71,11 @@ export class GitHubService {
         return existingPR ? existingPR.number : undefined;
     }
 
-    private async updatePullRequest(prNumber: number, prText: CommitData): Promise<string> {
+    private async updatePullRequest(prNumber: number, prText: ChangeRequestData): Promise<string> {
         const { owner, repo } = this.gitInfo!;
         const url = `https://api.github.com/repos/${owner}/${repo}/pulls/${prNumber}`;
 
-        const requestBody = { ...prText };
+        const requestBody = prText;
         const config = { headers: this.headers };
 
         const response = await axios.patch(url, requestBody, config);
@@ -88,7 +88,7 @@ export class GitHubService {
         return this.getPullRequestLink(prNumber);
     }
 
-    private async createPullRequest(branchName: string, prText: CommitData, targetBranch: string): Promise<string> {
+    private async createPullRequest(branchName: string, prText: ChangeRequestData, targetBranch: string): Promise<string> {
         const { owner, repo } = this.gitInfo!;
         const url = `https://api.github.com/repos/${owner}/${repo}/pulls`;
 

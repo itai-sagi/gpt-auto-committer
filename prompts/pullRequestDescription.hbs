@@ -1,0 +1,20 @@
+You are a SW Developer, Please create a descriptive Pull Request summary based on the following git diff changes:
+
+{{{diff}}}
+
+{{#if jiraContent}}
+Additional context from JIRA: {{jiraContent}}
+{{/if}}
+
+Guidelines:
+- Format the body of text using Markdown, the length of body shouldn't exceed the 500 words while the title shouldn't exceed 140 chars.
+- Provide a comprehensive overview of the significant alterations in the code diff and elucidate their impact.
+- Utilize emojis where appropriate to make the description engaging.
+- Inject a touch of humorous mention that this PR was initiated by the GPT Auto Committer and provide a link to it "https://github.com/itai-sagi/gpt-auto-committer"
+{{#if jiraContent}}
+- If relevant JIRA context exists, ensure to incorporate a JIRA link related to the issue.
+{{/if}}
+
+the response must be json and adhere to the following structure:
+
+interface CommitData { title: string, body: string }

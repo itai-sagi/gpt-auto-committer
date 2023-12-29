@@ -6,44 +6,58 @@ export interface CommitData {
     body: string;
 }
 
+export interface GitInfo {
+    owner: string;
+    repo: string;
+}
+
 export class GitHubService {
     private githubToken: string | undefined = process.env.GITHUB_ACCESS_TOKEN;
+    private gitInfo: GitInfo | undefined;
+    private initialized: boolean = false;
 
     constructor() {
         if (!this.githubToken) {
             throw new Error('No GitHub access token');
         }
+        this.initializeGitInfo(); // Initialize gitInfo upon instantiation
     }
 
-    private async getGitRemoteInfo(): Promise<{ owner: string; repo: string }> {
-        const gitRemoteOutput = child_process.execSync('git remote get-url origin').toString().trim();
-        const match = gitRemoteOutput.match(/github\.com[:\/](.*?)\/(.*?)\.git/);
-        if (!match || match.length < 3) {
-            throw new Error('Failed to parse GitHub remote URL');
+    private async initializeGitInfo() {
+        if (!this.initialized) {
+            const gitRemoteOutput = child_process.execSync('git remote get-url origin').toString().trim();
+            const match = gitRemoteOutput.match(/github\.com[:\/](.*?)\/(.*?)\.git/);
+            if (!match || match.length < 3) {
+                throw new Error('Failed to parse GitHub remote URL');
+            }
+            const [, owner, repo] = match;
+            this.gitInfo = { owner, repo };
+            this.initialized = true;
         }
-        const [, owner, repo] = match;
-        return { owner, repo };
     }
 
-    public async createOrUpdatePullRequest(branchName: string, prText: CommitData, targetBranch: string): Promise<void> {
+    public async createOrUpdatePullRequest(branchName: string, prText: CommitData, targetBranch: string): Promise<string> {
+        await this.ensureGitInfoInitialized(); // Ensuring gitInfo is ready before execution
+
+        if (branchName === targetBranch) {
+            throw new Error("Can't open a PR for the same branches");
+        }
+
         const existingPRNumber = await this.getExistingPullRequest(branchName, targetBranch);
 
         if (existingPRNumber) {
-            await this.updatePullRequest(existingPRNumber, prText);
-        } else {
-            await this.createPullRequest(branchName, prText, targetBranch);
+            return this.updatePullRequest(existingPRNumber, prText);
         }
+
+        return this.createPullRequest(branchName, prText, targetBranch);
     }
 
     private async getExistingPullRequest(branchName: string, targetBranch: string): Promise<number | undefined> {
-        const { owner, repo } = await this.getGitRemoteInfo();
+        const { owner, repo } = this.gitInfo!;
         const url = `https://api.github.com/repos/${owner}/${repo}/pulls`;
 
         const config = {
-            headers: {
-                'Authorization': `Bearer ${this.githubToken}`,
-                'Accept': 'application/vnd.github.v3+json',
-            },
+            headers: this.headers,
             params: {
                 state: 'open',
                 head: `${owner}:${branchName}`,
@@ -52,42 +66,30 @@ export class GitHubService {
         };
 
         const response = await axios.get(url, config);
+        const existingPR = response.data[0];
 
-        if (response.data.length > 0) {
-            return response.data[0].number; // Return the PR number if it exists
-        }
-
-        return undefined;
+        return existingPR ? existingPR.number : undefined;
     }
 
-    private async updatePullRequest(prNumber: number, prText: CommitData): Promise<void> {
-        const { owner, repo } = await this.getGitRemoteInfo();
+    private async updatePullRequest(prNumber: number, prText: CommitData): Promise<string> {
+        const { owner, repo } = this.gitInfo!;
         const url = `https://api.github.com/repos/${owner}/${repo}/pulls/${prNumber}`;
 
-        const requestBody = {
-            ...prText,
-        };
-
-        const config = {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${this.githubToken}`,
-                'Accept': 'application/vnd.github.v3+json',
-            },
-        };
+        const requestBody = { ...prText };
+        const config = { headers: this.headers };
 
         const response = await axios.patch(url, requestBody, config);
 
         if (response.status !== 200) {
-            console.log(response.data.errors);
-            throw new Error('Failed to update pull request');
+            throw new Error('Failed to update the pull request');
         }
 
         console.log('Pull request updated successfully!');
+        return this.getPullRequestLink(prNumber);
     }
 
-    private async createPullRequest(branchName: string, prText: CommitData, targetBranch: string): Promise<void> {
-        const { owner, repo } = await this.getGitRemoteInfo();
+    private async createPullRequest(branchName: string, prText: CommitData, targetBranch: string): Promise<string> {
+        const { owner, repo } = this.gitInfo!;
         const url = `https://api.github.com/repos/${owner}/${repo}/pulls`;
 
         const requestBody = {
@@ -97,22 +99,35 @@ export class GitHubService {
         };
 
         const config = {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${this.githubToken}`,
-                'Accept': 'application/vnd.github.v3+json',
-            },
+            headers: this.headers,
         };
 
         const response = await axios.post(url, requestBody, config);
 
         if (response.status !== 201) {
-            console.log(response.data.body);
-            throw new Error('Failed to create pull request');
+            throw new Error('Failed to create the pull request');
         }
 
         console.log('Pull request created successfully!');
+        return this.getPullRequestLink(response.data.number);
     }
 
+    private get headers() {
+        return {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${this.githubToken}`,
+            'Accept': 'application/vnd.github.v3+json',
+        };
+    }
 
+    private getPullRequestLink(prNumber: number): string {
+        const { owner, repo } = this.gitInfo!;
+        return `https://github.com/${owner}/${repo}/pull/${prNumber}`;
+    }
+
+    private async ensureGitInfoInitialized() {
+        if (!this.initialized) {
+            await this.initializeGitInfo();
+        }
+    }
 }

@@ -16,7 +16,6 @@ class GPTAutoCommitter {
     private githubService: GitHubService;
 
     constructor() {
-        console.log(this.githubToken);
         if (!process.env.OPENAI_API_KEY) {
             throw new Error('No OpenAI API key');
         }
@@ -36,7 +35,6 @@ class GPTAutoCommitter {
     }
 
     private async getJiraIssue(issueId: string): Promise<string> {
-        console.log(issueId);
         const url = `https://${this.jiraDomain}.atlassian.net/rest/api/2/issue/${issueId}`;
         const auth = `Basic ${Buffer.from(`${this.jiraEmail}:${this.jiraToken}`).toString('base64')}`;
         const response = await fetch(url, {
@@ -135,26 +133,27 @@ class GPTAutoCommitter {
                 jiraContent = await this.getJiraIssue(jiraIssueId);
             }
 
-            const commitMessage = await this.generateCommitMessage(diff, jiraContent);
 
             try {
+                const commitMessage = await this.generateCommitMessage(diff, jiraContent);
+
                 await this.commitChanges(commitMessage);
+                console.log('Changes committed and pushed successfully!');
             } catch (ex) {
                 console.error("Didn't commit changes");
             }
 
             if (shouldUpdatePullRequest) {
-                const diff = await this.execShellCommand(`git diff HEAD ${this.getCurrentBranch()}`);
+                const headBranch = (await this.execShellCommand("git remote show origin | awk '/HEAD branch/ {print $NF}'")).toString().trim();
+
+                const diff = await this.execShellCommand(`git diff ${headBranch} ${this.getCurrentBranch()}`);
 
                 const prText = await this.generatePullRequestDescription(diff, jiraContent);
 
-                const headBranch = (await this.execShellCommand('git rev-parse --abbrev-ref HEAD')).toString().trim();
 
-                console.log(headBranch);
-
-                await this.githubService.createOrUpdatePullRequest(this.getCurrentBranch(), prText, headBranch);
+                const prLink = await this.githubService.createOrUpdatePullRequest(this.getCurrentBranch(), prText, headBranch);
+                console.log(`Link to the PR -> ${prLink}`);
             }
-            console.log('Changes committed and pushed successfully!');
         } catch (error) {
             console.error('Error:', error);
         }

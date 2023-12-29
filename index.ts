@@ -16,7 +16,6 @@ class GPTAutoCommitter {
     private githubService: GitHubService;
 
     constructor() {
-        console.log(this.githubToken);
         if (!process.env.OPENAI_API_KEY) {
             throw new Error('No OpenAI API key');
         }
@@ -36,7 +35,6 @@ class GPTAutoCommitter {
     }
 
     private async getJiraIssue(issueId: string): Promise<string> {
-        console.log(issueId);
         const url = `https://${this.jiraDomain}.atlassian.net/rest/api/2/issue/${issueId}`;
         const auth = `Basic ${Buffer.from(`${this.jiraEmail}:${this.jiraToken}`).toString('base64')}`;
         const response = await fetch(url, {
@@ -149,8 +147,6 @@ class GPTAutoCommitter {
                 const prText = await this.generatePullRequestDescription(diff, jiraContent);
 
                 const headBranch = (await this.execShellCommand('git rev-parse --abbrev-ref HEAD')).toString().trim();
-
-                console.log(headBranch);
 
                 await this.githubService.createOrUpdatePullRequest(this.getCurrentBranch(), prText, headBranch);
             }

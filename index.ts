@@ -2,7 +2,7 @@ import axios from 'axios';
 import * as child_process from 'child_process';
 import fetch from 'node-fetch';
 import { OpenAI } from 'openai';
-import {CommitData, GitHubService} from "./github";
+import {ChangeRequestData, GitHubService} from "./github";
 import * as fs from "fs";
 import * as Handlebars from 'handlebars';
 
@@ -121,7 +121,7 @@ class GPTAutoCommitter {
         return `Jire Ticket ID: ${issueId}\n${data.fields.summary}\n${data.fields.description}, link: https://${this.jiraDomain}.atlassian.net/browse/${issueId}`;
     }
 
-    private async generatePullRequestDescription(diff: string, jiraContent?: string): Promise<CommitData> {
+    private async generatePullRequestDescription(diff: string, jiraContent?: string): Promise<ChangeRequestData> {
         const prompt= this.templates.prDescription({ diff, jiraContent });
 
         const gptResponse = await this.openai.chat.completions.create({
@@ -134,9 +134,14 @@ class GPTAutoCommitter {
             max_tokens: 4000,
         });
 
-        const response = JSON.parse(gptResponse.choices[0].message.content || '{}') as CommitData;
+        try {
+            const response = JSON.parse(gptResponse.choices[0].message.content || '{}') as ChangeRequestData;
+            return response;
+        } catch (ex){
+            console.log(gptResponse.choices[0].message.content)
+            throw ex
+        }
 
-        return response;
     }
 
     private async generateCommitMessage(diff: string, jiraContent?: string): Promise<string> {
@@ -148,10 +153,13 @@ class GPTAutoCommitter {
                 content: prompt,
                 role: 'user',
             }],
+            response_format: { type: 'json_object' },
             max_tokens: 2500,
         });
 
-        return gptResponse.choices[0].message.content || '';
+        const response = JSON.parse(gptResponse.choices[0].message.content || '{}') as { message: string };
+
+        return response.message;
     }
 
     private async commitChanges(commitMessage: string): Promise<void> {

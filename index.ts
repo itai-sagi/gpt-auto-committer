@@ -123,7 +123,6 @@ class GPTAutoCommitter {
 
     private async generatePullRequestDescription(diff: string, jiraContent?: string): Promise<CommitData> {
         const prompt= this.templates.prDescription({ diff, jiraContent });
-        console.log(prompt);
 
         const gptResponse = await this.openai.chat.completions.create({
             model: 'gpt-3.5-turbo-1106',
@@ -141,9 +140,7 @@ class GPTAutoCommitter {
     }
 
     private async generateCommitMessage(diff: string, jiraContent?: string): Promise<string> {
-        const prompt= this.templates.prDescription({ diff, jiraContent });
-
-
+        const prompt= this.templates.commitMessage({ diff, jiraContent });
 
         const gptResponse = await this.openai.chat.completions.create({
             model: 'gpt-3.5-turbo-1106',

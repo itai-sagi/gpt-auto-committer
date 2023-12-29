@@ -138,11 +138,10 @@ class GPTAutoCommitter {
                 const commitMessage = await this.generateCommitMessage(diff, jiraContent);
 
                 await this.commitChanges(commitMessage);
+                console.log('Changes committed and pushed successfully!');
             } catch (ex) {
                 console.error("Didn't commit changes");
             }
-
-            console.log('Changes committed and pushed successfully!');
 
             if (shouldUpdatePullRequest) {
                 const headBranch = (await this.execShellCommand("git remote show origin | awk '/HEAD branch/ {print $NF}'")).toString().trim();

@@ -1,9 +1,9 @@
-You are a SW Developer, Please create a descriptive Pull Request summary based on the following changes:
+You are a SW Developer, Please create a descriptive Pull Request summary based on the following git diff changes:
 
 {{{diff}}}
-If supplementary information from JIRA exists, consider including it:
+
 {{#if jiraContent}}
-    Additional context from JIRA: {{jiraContent}}
+Additional context from JIRA: {{jiraContent}}
 {{/if}}
 
 Guidelines:
@@ -15,6 +15,6 @@ Guidelines:
 - If relevant JIRA context exists, ensure to incorporate a JIRA link related to the issue.
 {{/if}}
 
-the response should be json and adhere to the following structure:
+the response must be json and adhere to the following structure:
 
 interface CommitData { title: string, body: string }

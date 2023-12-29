@@ -66,9 +66,6 @@ class GPTAutoCommitter {
             interface CommitData { title: string, body: string }
     `;
 
-        console.log(prompt);
-        throw new Error('')
-
         const gptResponse = await this.openai.chat.completions.create({
             model: 'gpt-3.5-turbo-1106',
             messages: [{
@@ -145,6 +142,8 @@ class GPTAutoCommitter {
                 console.error("Didn't commit changes");
             }
 
+            console.log('Changes committed and pushed successfully!');
+
             if (shouldUpdatePullRequest) {
                 const headBranch = (await this.execShellCommand("git remote show origin | awk '/HEAD branch/ {print $NF}'")).toString().trim();
 
@@ -153,9 +152,9 @@ class GPTAutoCommitter {
                 const prText = await this.generatePullRequestDescription(diff, jiraContent);
 
 
-                await this.githubService.createOrUpdatePullRequest(this.getCurrentBranch(), prText, headBranch);
+                const prLink = await this.githubService.createOrUpdatePullRequest(this.getCurrentBranch(), prText, headBranch);
+                console.log(`Link to the PR -> ${prLink}`);
             }
-            console.log('Changes committed and pushed successfully!');
         } catch (error) {
             console.error('Error:', error);
         }

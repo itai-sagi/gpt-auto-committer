@@ -18,6 +18,7 @@ class GPTAutoCommitter {
     private jiraToken: string | undefined = process.env.JIRA_API_KEY;
     private jiraDomain: string | undefined = process.env.JIRA_DOMAIN;
     private githubToken: string | undefined = process.env.GITHUB_ACCESS_TOKEN;
+    private model: string = process.env.OPEN_AI_MODEL || 'gpt-3.5-turbo-1106';
 
     private openai: OpenAI;
     private githubService: GitHubService;
@@ -81,10 +82,10 @@ class GPTAutoCommitter {
             return;
         }
 
-        try {
-            const commitMessage = await this.generateCommitMessage(diff, jiraContent);
+        const commitData = await this.generateCommitMessage(diff, jiraContent);
 
-            await this.commitChanges(commitMessage);
+        try {
+            await this.commitChanges(commitData.message);
             console.log('Changes committed and pushed successfully!');
         } catch (ex) {
             console.error(`Failed to commit changes - ${ex}`);
@@ -121,45 +122,38 @@ class GPTAutoCommitter {
         return `Jire Ticket ID: ${issueId}\n${data.fields.summary}\n${data.fields.description}, link: https://${this.jiraDomain}.atlassian.net/browse/${issueId}`;
     }
 
+    private async generateOpenAIResponse<T>(prompt: string, maxTokens: number): Promise<T> {
+        const gptResponse = await this.openai.chat.completions.create({
+            model: this.model,
+            messages: [{
+                content: prompt,
+                role: 'user',
+            }],
+            response_format: { type: 'json_object' },
+            max_tokens: maxTokens,
+        });
+
+        const content = gptResponse.choices[0].message.content || '{}';
+
+        try {
+            return JSON.parse(content) as T;
+        } catch (ex) {
+            console.log(content);
+            throw ex;
+        }
+    }
+
     private async generatePullRequestDescription(diff: string, jiraContent?: string): Promise<ChangeRequestData> {
         const prompt= this.templates.prDescription({ diff, jiraContent });
 
-        const gptResponse = await this.openai.chat.completions.create({
-            model: 'gpt-3.5-turbo-1106',
-            messages: [{
-                content: prompt,
-                role: 'user',
-            }],
-            response_format: { type: 'json_object' },
-            max_tokens: 4000,
-        });
-
-        try {
-            const response = JSON.parse(gptResponse.choices[0].message.content || '{}') as ChangeRequestData;
-            return response;
-        } catch (ex){
-            console.log(gptResponse.choices[0].message.content)
-            throw ex
-        }
+        return await this.generateOpenAIResponse<ChangeRequestData>(prompt, 4000);
 
     }
 
-    private async generateCommitMessage(diff: string, jiraContent?: string): Promise<string> {
+    private async generateCommitMessage(diff: string, jiraContent?: string): Promise<{ message: string }> {
         const prompt= this.templates.commitMessage({ diff, jiraContent });
 
-        const gptResponse = await this.openai.chat.completions.create({
-            model: 'gpt-3.5-turbo-1106',
-            messages: [{
-                content: prompt,
-                role: 'user',
-            }],
-            response_format: { type: 'json_object' },
-            max_tokens: 2500,
-        });
-
-        const response = JSON.parse(gptResponse.choices[0].message.content || '{}') as { message: string };
-
-        return response.message;
+        return await this.generateOpenAIResponse<{ message: string }>(prompt, 2500);
     }
 
     private async commitChanges(commitMessage: string): Promise<void> {

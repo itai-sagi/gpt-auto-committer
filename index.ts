@@ -78,6 +78,7 @@ class GPTAutoCommitter {
         const diff = await this.execShellCommand('git diff HEAD');
 
         if (!diff.trim()) {
+            await this.execShellCommand(`git push origin HEAD ${process.argv.includes('--force') ? '-f' : ''}`);
             console.log('No changes to commit.');
             return;
         }

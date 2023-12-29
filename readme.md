@@ -39,7 +39,7 @@ Set the following environment variables:
 To simplify execution, you can add this function to your shell profile and run it from any directory.
 
 ```bash
-function run-git-committer() {
+function gac() {
   (
   export GITHUB_ACCESS_TOKEN=xxx && npx ts-node /path/to/auto_commit.ts "$@"
   )

@@ -1,17 +1,36 @@
 {
-  "name": "git-committer",
+  "name": "gpt-auto-committer",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "description": "CLI tool for automating commits & GitHub pull requests using LLMs",
+  "bin": {
+    "gac": "./index.ts"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "git",
+    "chatgpt",
+    "gpt",
+    "ai",
+    "openai",
+    "aicommit",
+    "aicommits",
+    "gptcommit",
+    "commit",
+    "pullrequest",
+    "github",
+    "jira"
+  ],
+  "preferGlobal": true,
+  "scripts": {
+    "start": "ts-node index.ts"
+  },
   "dependencies": {
-    "axios": "^1.6.3",
-    "handlebars": "^4.7.8",
-    "openai": "^4.24.1"
+    "axios": "^0.24.0",
+    "child_process": "^1.0.2",
+    "node-fetch": "^3.0.0",
+    "openai": "^0.10.0",
+    "fs": "^0.0.1",
+    "handlebars": "^4.7.7"
+  },
+  "devDependencies": {
   }
 }

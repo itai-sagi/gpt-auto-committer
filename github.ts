@@ -75,7 +75,7 @@ export class GitHubService {
         const { owner, repo } = this.gitInfo!;
         const url = `https://api.github.com/repos/${owner}/${repo}/pulls/${prNumber}`;
 
-        const requestBody = { ...prText };
+        const requestBody = prText;
         const config = { headers: this.headers };
 
         const response = await axios.patch(url, requestBody, config);

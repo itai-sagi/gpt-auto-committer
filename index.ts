@@ -146,7 +146,7 @@ class GPTAutoCommitter {
 
                 const prText = await this.generatePullRequestDescription(diff, jiraContent);
 
-                const headBranch = (await this.execShellCommand('git rev-parse --abbrev-ref HEAD')).toString().trim();
+                const headBranch = (await this.execShellCommand("git remote show origin | awk '/HEAD branch/ {print $NF}'")).toString().trim();
 
                 await this.githubService.createOrUpdatePullRequest(this.getCurrentBranch(), prText, headBranch);
             }

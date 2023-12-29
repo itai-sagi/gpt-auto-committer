@@ -18,7 +18,7 @@ class GPTAutoCommitter {
     private jiraToken: string | undefined = process.env.JIRA_API_KEY;
     private jiraDomain: string | undefined = process.env.JIRA_DOMAIN;
     private githubToken: string | undefined = process.env.GITHUB_ACCESS_TOKEN;
-    private model: string = process.env.OPEN_AI_MODEL || 'gpt-3.5-turbo-1106';
+    private model: string = process.env.OPENAI_MODEL || 'gpt-3.5-turbo-1106';
 
     private openai: OpenAI;
     private githubService: GitHubService;
@@ -41,7 +41,7 @@ class GPTAutoCommitter {
     }
 
     public async run(): Promise<void> {
-        const jiraIssueId = process.argv[2].startsWith('--') ? null : process.argv[2]; // Optional JIRA issue ID provided as an argument.
+        const jiraIssueId = (process.argv[2] || '').startsWith('--') ? null : process.argv[2]; // Optional JIRA issue ID provided as an argument.
         const shouldUpdatePullRequest = process.argv.includes('--update-pr');
 
         console.log(`Running for Jira Issue: ${jiraIssueId}`);

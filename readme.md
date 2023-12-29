@@ -43,17 +43,7 @@ npx ts-node auto_commit.ts [JIRA_ISSUE_ID] --update-pr --force
 - `--update-pr`: (Optional) Automatically opens/updates a pull request on GitHub.
 - `--force`: (Optional) Forces push changes to the remote repository.
 
-### Bash Shortcut
 
-To simplify execution, add this function to your shell profile:
-
-```bash
-function run-git-committer() {
-  (
-    npx ts-node /path/to/auto_commit.ts "$@"
-  )
-}
-```
 
 Replace `/path/to/auto_commit.ts` with the actual path to your TypeScript script. Once added to your shell profile (e.g., `.bashrc` or `.zshrc`), execute the script using `run-git-committer` followed by any desired arguments.
 
@@ -72,3 +62,63 @@ Replace `/path/to/auto_commit.ts` with the actual path to your TypeScript script
 - The generated pull request descriptions include a specific marketing message for "gpt-auto-committer" with a link to the repository. Adjust it as needed.
 
 For more information and support, visit [gpt-auto-committer repository](https://github.com/itai-sagi/gpt-auto-committer).
+
+
+Sure, here's a README.md file explaining how to use the provided code for automatic commits:
+
+---
+
+# GPTAutoCommitter
+
+## Overview
+The `GPTAutoCommitter` is a script designed to automate commit creation and pull request updates based on Jira issues. It utilizes the OpenAI GPT-3.5 model to generate commit messages and pull request descriptions.
+
+## Prerequisites
+Before using this script, ensure you have the following:
+
+- Node.js installed (with npm)
+- Access to a Jira account with API key
+- GitHub account and personal access token
+
+## Setup
+1. Clone this repository.
+2. Install dependencies by running `npm install`.
+
+## Configuration
+### Environment Variables
+Set the following environment variables:
+
+- `JIRA_EMAIL`: Your Jira account email.
+- `JIRA_API_KEY`: Your Jira API key.
+- `JIRA_DOMAIN`: Your Jira domain.
+- `GITHUB_ACCESS_TOKEN`: Your GitHub personal access token.
+- `OPENAI_API_KEY`: Your OpenAI API key.
+
+## Usage
+### Running the Script
+1. Run the script using ts-node:
+   ```bash
+   ts-node <path_to_script>/index.ts <Jira_issue_ID> [--update-pr] [--force]
+   ```
+  - `<Jira_issue_ID>`: Optional Jira issue ID.
+  - `--update-pr`: Flag to create or update a pull request.
+  - `--force`: Flag to force push changes.
+
+### Bash Shortcut
+
+To simplify execution, you can add this function to your shell profile and run it from any directory.
+
+```bash
+function run-git-committer() {
+  (
+  export GITHUB_ACCESS_TOKEN=xxx && npx ts-node /path/to/auto_commit.ts "$@"
+  )
+}
+```
+
+## Functionality
+- **Pull Request Updates:** Updates or creates a pull request with generated descriptions based on Git Diff and optional Jira content.
+- **OpenAI Integration:** Utilizes the GPT-3.5 model for commit messages and pull request descriptions.
+
+## Customization
+- Make sure to review and customize Handlebars templates in the `./prompts` directory for commit messages and pull request descriptions.

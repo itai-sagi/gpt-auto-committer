@@ -23,6 +23,60 @@ class GPTAutoCommitter {
         this.githubService = new GitHubService();
     }
 
+    public async run(): Promise<void> {
+        const jiraIssueId = process.argv[2].startsWith('--') ? null : process.argv[2]; // Optional JIRA issue ID provided as an argument.
+        const shouldUpdatePullRequest = process.argv.includes('--update-pr');
+
+        console.log(`Running for Jira Issue: ${jiraIssueId}`);
+        console.log(`Should create/update a PR: ${shouldUpdatePullRequest}`);
+
+        if (shouldUpdatePullRequest && !this.githubToken) {
+            throw new Error('No GitHub access token');
+        }
+
+        try {
+            let jiraContent = '';
+            if (jiraIssueId) {
+                jiraContent = await this.getJiraIssue(jiraIssueId);
+            }
+
+            await this.commitChangesIfNeeded(jiraContent);
+
+            if (shouldUpdatePullRequest) {
+                const headBranch = (await this.execShellCommand("git remote show origin | awk '/HEAD branch/ {print $NF}'")).toString().trim();
+
+                const updatedDiff = await this.execShellCommand(`git diff ${headBranch} ${this.getCurrentBranch()}`);
+
+                const prText = await this.generatePullRequestDescription(updatedDiff, jiraContent);
+
+                const prLink = await this.githubService.createOrUpdatePullRequest(this.getCurrentBranch(), prText, headBranch);
+                console.log(`Link to the PR -> ${prLink}`);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+    private async commitChangesIfNeeded(jiraContent: string): Promise<void> {
+        const diff = await this.execShellCommand('git diff HEAD');
+
+        if (!diff.trim()) {
+            console.log('No changes to commit.');
+            return;
+        }
+
+        try {
+            const commitMessage = await this.generateCommitMessage(diff, jiraContent);
+
+            await this.commitChanges(commitMessage);
+            console.log('Changes committed and pushed successfully!');
+        } catch (ex) {
+            console.error(`Failed to commit changes - ${ex}`);
+        }
+    }
+
+
+
     private async execShellCommand(cmd: string): Promise<string> {
         return new Promise((resolve, reject) => {
             child_process.exec(cmd, (error, stdout, stderr) => {
@@ -77,7 +131,6 @@ class GPTAutoCommitter {
         });
 
         const response = JSON.parse(gptResponse.choices[0].message.content || '{}') as CommitData;
-        console.log(response);
 
         return response;
     }
@@ -114,50 +167,7 @@ class GPTAutoCommitter {
         return child_process.execSync('git rev-parse --abbrev-ref HEAD').toString().trim();
     }
 
-    public async run(): Promise<void> {
-        const jiraIssueId = process.argv[2].startsWith('--') ? null : process.argv[2]; // Optional JIRA issue ID provided as an argument.
-        const shouldUpdatePullRequest = process.argv.includes('--update-pr');
 
-        console.log(`Running for Jira Issue: ${jiraIssueId}`);
-        console.log(`Should create/update a PR: ${shouldUpdatePullRequest}`);
-
-        if (shouldUpdatePullRequest && !this.githubToken) {
-            throw new Error('No GitHub access token');
-        }
-
-        try {
-            const diff = await this.execShellCommand('git diff HEAD');
-
-            let jiraContent = '';
-            if (jiraIssueId) {
-                jiraContent = await this.getJiraIssue(jiraIssueId);
-            }
-
-
-            try {
-                const commitMessage = await this.generateCommitMessage(diff, jiraContent);
-
-                await this.commitChanges(commitMessage);
-                console.log('Changes committed and pushed successfully!');
-            } catch (ex) {
-                console.error("Didn't commit changes");
-            }
-
-            if (shouldUpdatePullRequest) {
-                const headBranch = (await this.execShellCommand("git remote show origin | awk '/HEAD branch/ {print $NF}'")).toString().trim();
-
-                const diff = await this.execShellCommand(`git diff ${headBranch} ${this.getCurrentBranch()}`);
-
-                const prText = await this.generatePullRequestDescription(diff, jiraContent);
-
-
-                const prLink = await this.githubService.createOrUpdatePullRequest(this.getCurrentBranch(), prText, headBranch);
-                console.log(`Link to the PR -> ${prLink}`);
-            }
-        } catch (error) {
-            console.error('Error:', error);
-        }
-    }
 }
 
 const autoCommitter = new GPTAutoCommitter();

@@ -3,8 +3,15 @@ import * as child_process from 'child_process';
 import fetch from 'node-fetch';
 import { OpenAI } from 'openai';
 import {CommitData, GitHubService} from "./github";
+import * as fs from "fs";
+import * as Handlebars from 'handlebars';
 
 
+function compileHandlebars(pathToHbs: string) {
+    const source = fs.readFileSync(pathToHbs, 'utf8');
+    return Handlebars.compile(source);
+
+}
 
 class GPTAutoCommitter {
     private jiraEmail: string | undefined = process.env.JIRA_EMAIL;
@@ -14,6 +21,10 @@ class GPTAutoCommitter {
 
     private openai: OpenAI;
     private githubService: GitHubService;
+    private templates: {
+        prDescription: HandlebarsTemplateDelegate<any>,
+        commitMessage: HandlebarsTemplateDelegate<any>,
+    };
 
     constructor() {
         if (!process.env.OPENAI_API_KEY) {
@@ -21,6 +32,11 @@ class GPTAutoCommitter {
         }
         this.openai = new OpenAI();
         this.githubService = new GitHubService();
+        this.templates = {
+            prDescription: compileHandlebars('./prompts/pullRequestDescription.hbs'),
+            commitMessage: compileHandlebars('./prompts/commitMessage.hbs')
+        };
+
     }
 
     public async run(): Promise<void> {
@@ -106,19 +122,8 @@ class GPTAutoCommitter {
     }
 
     private async generatePullRequestDescription(diff: string, jiraContent?: string): Promise<CommitData> {
-        const prompt = `
-        You are a SW Developer, Please create a description for the Pull Request based on the following changes:\n\n${diff}\n${jiraContent ? '\nAdditional context from JIRA:' + jiraContent : ''} 
-        
-        Guidelines:
-            1. Description should be in markdown format
-            2. Outline major changes in the diff and explain those changes
-            3. Use emojis where appropriate to bring the description to life
-            4. At the end of the PR add a little sarcastic marketing message with the link https://github.com/itai-sagi/gpt-auto-committer & saying that this PR was created by GPT Auto Committer
-            ${jiraContent ? '5. Add a jira link to the issue' : ''}
-            the response should be json and adhere to the following structure:   
-            
-            interface CommitData { title: string, body: string }
-    `;
+        const prompt= this.templates.prDescription({ diff, jiraContent });
+        console.log(prompt);
 
         const gptResponse = await this.openai.chat.completions.create({
             model: 'gpt-3.5-turbo-1106',
@@ -136,12 +141,7 @@ class GPTAutoCommitter {
     }
 
     private async generateCommitMessage(diff: string, jiraContent?: string): Promise<string> {
-        const prompt = `
-        You are a SW Developer, craft a commit message for the following diff of a Git repository:\n\n${diff}\n${jiraContent ? '\nAdditional context from JIRA:' + jiraContent : ''}
-        it should adhere to conventional commits, so determine if it's a feat, fix, chore, or otherwise.
-        the commit message should be relevant to the files committed while referencing the JIRA Issue's content if its' applicable.
-        The commit message should explain the changes to the best of your ability.
-    `;
+        const prompt= this.templates.prDescription({ diff, jiraContent });
 
         const gptResponse = await this.openai.chat.completions.create({
             model: 'gpt-3.5-turbo-1106',

@@ -1,16 +1,20 @@
-You are a SW Developer, Please create a description for the Pull Request based on the following changes:
+You are a SW Developer, Please create a descriptive Pull Request summary based on the following changes:
 
 {{{diff}}}
+If supplementary information from JIRA exists, consider including it:
 {{#if jiraContent}}
     Additional context from JIRA: {{jiraContent}}
 {{/if}}
 
 Guidelines:
-1. Description should be in markdown format
-2. Outline major changes in the diff and explain those changes
-3. Use emojis where appropriate to bring the description to life
-4. At the end of the PR add a little sarcastic marketing message with the link https://github.com/itai-sagi/gpt-auto-committer & saying that this PR was created by GPT Auto Committer
+- Format the description using Markdown.
+- Provide a comprehensive overview of the significant alterations in the code diff and elucidate their impact.
+- Utilize emojis where appropriate to make the description engaging.
+-  Inject a touch of humor by concluding the PR with a whimsical marketing message. Reference: GPT Auto Committer, and mention that this PR was initiated by the GPT Auto Committer.
 {{#if jiraContent}}
-    5. Add a jira link to the issue
+- If relevant JIRA context exists, ensure to incorporate a JIRA link related to the issue.
 {{/if}}
+
 the response should be json and adhere to the following structure:
+
+interface CommitData { title: string, body: string }

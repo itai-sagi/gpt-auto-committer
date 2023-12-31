@@ -34,8 +34,8 @@ class GPTAutoCommitter {
         this.openai = new OpenAI();
         this.githubService = new GitHubService();
         this.templates = {
-            prDescription: compileHandlebars('./prompts/pullRequestDescription.hbs'),
-            commitMessage: compileHandlebars('./prompts/commitMessage.hbs')
+            prDescription: compileHandlebars(`${__dirname}/prompts/pullRequestDescription.hbs`),
+            commitMessage: compileHandlebars(`${__dirname}/prompts/commitMessage.hbs`)
         };
 
     }

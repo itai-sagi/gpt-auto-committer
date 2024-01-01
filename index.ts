@@ -158,7 +158,7 @@ class GPTAutoCommitter {
     }
 
     private async commitChanges(commitMessage: string): Promise<void> {
-        await this.execShellCommand('git add .');
+        await this.execShellCommand('git add -u');
         await this.execShellCommand(`git commit -m "${commitMessage}"`);
         await this.execShellCommand(`git push origin HEAD ${process.argv.includes('--force') ? '-f' : ''}`);
     }

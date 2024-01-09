@@ -18,11 +18,12 @@ Before using this script, ensure you have the following:
 ### Environment Variables
 Set the following environment variables:
 
-- `JIRA_EMAIL`: Your Jira account email.
-- `JIRA_API_KEY`: Your Jira API key.
-- `JIRA_DOMAIN`: Your Jira domain.
-- `GITHUB_ACCESS_TOKEN`: Your GitHub personal access token.
 - `OPENAI_API_KEY`: Your OpenAI API key.
+- `OPENAI_MODEL`: Use a different GPT Model when generating commits & pull-requests (default: gpt-3.5-turbo-1106)
+- `JIRA_EMAIL`: Your Jira account email. (required if supplying issue id)
+- `JIRA_API_KEY`: Your Jira API key. (required if supplying issue id)
+- `JIRA_DOMAIN`: Your Jira domain. (required if supplying issue id)
+- `GITHUB_ACCESS_TOKEN`: Your GitHub personal access token. (required if creating PR)
 
 ## Usage
 ### Running the Script

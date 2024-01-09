@@ -1,14 +1,16 @@
 # GPTAutoCommitter
 
 ## Overview
-The `GPTAutoCommitter` is a script designed to automate commit creation and pull request updates based on Jira issues. It utilizes the OpenAI GPT-3.5 model to generate commit messages and pull request descriptions.
+The `GPTAutoCommitter` is a script designed to automate commit creation and pull request updates based on Jira issues. It utilizes the OpenAI GPT model to generate commit messages and pull request descriptions, as-well as automating other ops.
 
 ## Prerequisites
 Before using this script, ensure you have the following:
 
 - Node.js installed (with npm)
-- Access to a Jira account with API key
-- GitHub account and personal access token
+- An OpenAI access key
+- GitHub account and personal access token (if creating PRs)
+- Access to a Jira API (if want to use JIRA as additional context)
+
 
 ## Setup
 1. Clone this repository.

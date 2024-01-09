@@ -20,10 +20,10 @@ Set the following environment variables:
 
 - `OPENAI_API_KEY`: Your OpenAI API key.
 - `OPENAI_MODEL`: Use a different GPT Model when generating commits & pull-requests (default: gpt-3.5-turbo-1106)
-- `JIRA_EMAIL`: Your Jira account email. (required if supplying issue id)
-- `JIRA_API_KEY`: Your Jira API key. (required if supplying issue id)
-- `JIRA_DOMAIN`: Your Jira domain. (required if supplying issue id)
-- `GITHUB_ACCESS_TOKEN`: Your GitHub personal access token. (required if creating PR)
+- `GITHUB_ACCESS_TOKEN`: Your GitHub personal access token. (required when creating PR)
+- `JIRA_EMAIL`: Your Jira account email. (required when supplying issue id)
+- `JIRA_API_KEY`: Your Jira API key. (required when supplying issue id)
+- `JIRA_DOMAIN`: Your Jira domain. (required when supplying issue id)
 
 ## Usage
 ### Running the Script
@@ -34,9 +34,9 @@ Set the following environment variables:
   - `<Jira_issue_ID>`: Optional Jira issue ID.
   - `--update-pr`: Flag to create or update a pull request.
   - `--force`: Flag to force push changes. 
-  - --version=<version>: Optional flag to specify the version bump (e.g., --version=patch/minor/major). 
-  - --branch=<branch_name>: Optional flag to specify a new branch name. 
-  - If on head branch and a jira issue was supplied and no new branch was supplied, a branch will be created in the same name as the jira issue id.
+  - `--version=<version>`: Optional flag to specify the version bump (e.g., `--version=patch/minor/major`). if no version is supplied, it will default to `patch`
+  - `--branch=<branch_name>`: Optional flag to specify a new branch name. 
+  - If on head branch and a jira issue was supplied and no new branch was supplied, a branch will be created as the name of the JIRA Issue.
 
 ### Bash Shortcut
 

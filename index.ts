@@ -1,4 +1,3 @@
-import axios from 'axios';
 import * as child_process from 'child_process';
 import fetch from 'node-fetch';
 import { OpenAI } from 'openai';
@@ -43,9 +42,19 @@ class GPTAutoCommitter {
     public async run(): Promise<void> {
         const jiraIssueId = (process.argv[2] || '').startsWith('--') ? null : process.argv[2]; // Optional JIRA issue ID provided as an argument.
         const shouldUpdatePullRequest = process.argv.includes('--update-pr');
+        const versionFlagIndex = process.argv.findIndex(arg => arg.startsWith('--version'));
+        let versionBump = undefined;
+        if (versionFlagIndex !== -1) {
+            versionBump = process.argv[versionFlagIndex].split('=')[1] || 'patch';
+        }
+        const headBranch = (await this.execShellCommand("git remote show origin | awk '/HEAD branch/ {print $NF}'")).toString().trim();
 
-        console.log(`Running for Jira Issue: ${jiraIssueId}`);
-        console.log(`Should create/update a PR: ${shouldUpdatePullRequest}`);
+        const newBranch = jiraIssueId && this.getCurrentBranch() === headBranch ? jiraIssueId : null;
+
+        console.log(`Running for Jira Issue: ${jiraIssueId || 'N/A'}`);
+        console.log(`Should create/update a PR: ${shouldUpdatePullRequest || 'No'}`);
+        console.log(`Should bump to version: ${versionBump || 'No'}`);
+        console.log(`Switching to a new branch: ${newBranch || 'No'}`);
 
         if (shouldUpdatePullRequest && !this.githubToken) {
             throw new Error('No GitHub access token');
@@ -57,10 +66,17 @@ class GPTAutoCommitter {
                 jiraContent = await this.getJiraIssue(jiraIssueId);
             }
 
+            if (newBranch) {
+                await this.execShellCommand(`git checkout -b ${newBranch}`);
+            }
+
+            if (versionBump){
+                await this.execShellCommand(`npm version ${versionBump}`)
+            }
+
             await this.commitChangesIfNeeded(jiraContent);
 
             if (shouldUpdatePullRequest) {
-                const headBranch = (await this.execShellCommand("git remote show origin | awk '/HEAD branch/ {print $NF}'")).toString().trim();
 
                 const updatedDiff = await this.execShellCommand(`git diff ${headBranch} ${this.getCurrentBranch()}`);
 
@@ -147,7 +163,7 @@ class GPTAutoCommitter {
     private async generatePullRequestDescription(diff: string, jiraContent?: string): Promise<ChangeRequestData> {
         const prompt= this.templates.prDescription({ diff, jiraContent });
 
-        return await this.generateOpenAIResponse<ChangeRequestData>(prompt, 4000);
+        return await this.generateOpenAIResponse<ChangeRequestData>(prompt, 2500);
 
     }
 

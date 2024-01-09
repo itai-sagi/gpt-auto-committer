@@ -43,13 +43,20 @@ class GPTAutoCommitter {
         const jiraIssueId = (process.argv[2] || '').startsWith('--') ? null : process.argv[2]; // Optional JIRA issue ID provided as an argument.
         const shouldUpdatePullRequest = process.argv.includes('--update-pr');
         const versionFlagIndex = process.argv.findIndex(arg => arg.startsWith('--version'));
+        const branchIndex = process.argv.findIndex(arg => arg.startsWith('--branch='));
+
         let versionBump = undefined;
+        let newBranch = undefined;
         if (versionFlagIndex !== -1) {
             versionBump = process.argv[versionFlagIndex].split('=')[1] || 'patch';
         }
-        const headBranch = (await this.execShellCommand("git remote show origin | awk '/HEAD branch/ {print $NF}'")).toString().trim();
+        if (branchIndex !== -1) {
+            newBranch = process.argv[branchIndex].split('=')[1]
 
-        const newBranch = jiraIssueId && this.getCurrentBranch() === headBranch ? jiraIssueId : null;
+        }
+        const headBranch = (await this.execShellCommand("git remote show origin | awk '/HEAD branch/ {print $NF}'")).toString().trim();
+        newBranch = newBranch || jiraIssueId && this.getCurrentBranch() === headBranch ? jiraIssueId : null;
+
 
         console.log(`Running for Jira Issue: ${jiraIssueId || 'N/A'}`);
         console.log(`Should create/update a PR: ${shouldUpdatePullRequest || 'No'}`);

@@ -52,11 +52,9 @@ class GPTAutoCommitter {
         }
         if (branchIndex !== -1) {
             newBranch = process.argv[branchIndex].split('=')[1]
-
         }
         const headBranch = (await this.execShellCommand("git remote show origin | awk '/HEAD branch/ {print $NF}'")).toString().trim();
-        newBranch = newBranch || jiraIssueId && this.getCurrentBranch() === headBranch ? jiraIssueId : null;
-
+        newBranch = newBranch || (jiraIssueId && this.getCurrentBranch() === headBranch ? jiraIssueId : null);
 
         console.log(`Running for Jira Issue: ${jiraIssueId || 'N/A'}`);
         console.log(`Should create/update a PR: ${shouldUpdatePullRequest || 'No'}`);
@@ -70,7 +68,7 @@ class GPTAutoCommitter {
         try {
             let jiraContent = '';
             if (jiraIssueId) {
-                jiraContent = await this.getJiraIssue(jiraIssueId);
+                jiraContent = await this.getJiraIssue(jiraIssueId!);
             }
 
             if (newBranch) {

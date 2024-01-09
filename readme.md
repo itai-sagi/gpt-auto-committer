@@ -28,11 +28,14 @@ Set the following environment variables:
 ### Running the Script
 1. Run the script using ts-node:
    ```bash
-   ts-node <path_to_script>/index.ts <Jira_issue_ID> [--update-pr] [--force]
+   ts-node <path_to_script>/index.ts <Jira_issue_ID> [--update-pr] [--force] [--version=<version>] [--branch=<branch_name>]
    ```
   - `<Jira_issue_ID>`: Optional Jira issue ID.
   - `--update-pr`: Flag to create or update a pull request.
-  - `--force`: Flag to force push changes.
+  - `--force`: Flag to force push changes. 
+  - --version=<version>: Optional flag to specify the version bump (e.g., --version=patch/minor/major). 
+  - --branch=<branch_name>: Optional flag to specify a new branch name. 
+  - If on head branch and a jira issue was supplied and no new branch was supplied, a branch will be created in the same name as the jira issue id.
 
 ### Bash Shortcut
 

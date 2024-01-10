@@ -75,11 +75,12 @@ class GPTAutoCommitter {
                 await this.execShellCommand(`git checkout -b ${newBranch}`);
             }
 
-            if (versionBump){
-                await this.execShellCommand(`npm version ${versionBump}`)
-            }
-
             await this.commitChangesIfNeeded(jiraContent);
+
+            if (versionBump){
+                await this.execShellCommand(`npm --no-git-tag-version version ${versionBump}`);
+                this.pushChanges();
+            }
 
             if (shouldUpdatePullRequest) {
 
@@ -99,7 +100,7 @@ class GPTAutoCommitter {
         const diff = await this.execShellCommand('git diff HEAD');
 
         if (!diff.trim()) {
-            await this.execShellCommand(`git push origin HEAD ${process.argv.includes('--force') ? '-f' : ''}`);
+            await this.pushChanges();
             console.log('No changes to commit.');
             return;
         }
@@ -189,6 +190,9 @@ class GPTAutoCommitter {
     }
 
 
+    private async pushChanges() {
+        await this.execShellCommand(`git push origin HEAD ${process.argv.includes('--force') ? '-f' : ''}`);
+    }
 }
 
 const autoCommitter = new GPTAutoCommitter();

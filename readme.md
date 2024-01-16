@@ -14,7 +14,7 @@ Before using this script, ensure you have the following:
 
 ## Setup
 1. Clone this repository.
-2. Install dependencies by running `npm install`.
+2. Install dependencies by running `npm install gpt-auto-committer -g`.
 
 ## Configuration
 ### Environment Variables
@@ -27,6 +27,29 @@ Set the following environment variables:
 - `JIRA_API_KEY`: Your Jira API key. (required when supplying issue id)
 - `JIRA_DOMAIN`: Your Jira domain. (required when supplying issue id)
 
+### Profile Configuration
+
+Alternatively, you can use profiles which are defined in an INI-style configuration file located at `~/.gac/profile`. The file can include different profiles, each with its own set of configuration.
+
+```ini
+~/.gac/profile
+
+[default]
+jiraEmail = default-email@example.com
+jiraApiKey = default-api-key
+jiraDomain = default-domain
+githubAccessToken = default-github-token
+openaiApiKey = default-openai-api-key
+openaiModel = gpt-3.5-turbo-1106
+
+[projectX]
+jiraEmail = projectX-email@example.com
+jiraApiKey = projectX-api-key
+jiraDomain = projectX-domain
+githubAccessToken = projectX-github-token
+openaiApiKey = projectX-openai-api-key
+openaiModel = gpt-3.5-turbo-1106
+```
 ## Usage
 ### Running the Script
 1. Run the script using ts-node:
@@ -40,17 +63,6 @@ Set the following environment variables:
   - `--branch=<branch_name>`: Optional flag to specify a new branch name. 
   - If on head branch and a jira issue was supplied and no new branch was supplied, a branch will be created as the name of the JIRA Issue.
 
-### Bash Shortcut
-
-To simplify execution, you can add this function to your shell profile and run it from any directory.
-
-```bash
-function gac() {
-  (
-  export GITHUB_ACCESS_TOKEN=xxx && npx ts-node /path/to/auto_commit.ts "$@"
-  )
-}
-```
 
 ## Functionality
 - **Pull Request Updates:** Updates or creates a pull request with generated descriptions based on Git Diff and optional Jira content.

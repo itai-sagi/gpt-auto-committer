@@ -19,12 +19,6 @@ function compileHandlebars(pathToHbs: string) {
 }
 
 class GPTAutoCommitter {
-    private jiraEmail: string | undefined = process.env.JIRA_EMAIL;
-    private jiraToken: string | undefined = process.env.JIRA_API_KEY;
-    private jiraDomain: string | undefined = process.env.JIRA_DOMAIN;
-    private githubToken: string | undefined = process.env.GITHUB_ACCESS_TOKEN;
-    private model: string = process.env.OPENAI_MODEL || 'gpt-3.5-turbo-1106';
-
     private openai: OpenAI;
     private githubService: GitHubService;
     private templates: {
@@ -50,6 +44,10 @@ class GPTAutoCommitter {
         const shouldUpdatePullRequest = process.argv.includes('--update-pr');
         const versionFlagIndex = process.argv.findIndex((arg:string) => arg.startsWith('--version'));
         const branchIndex = process.argv.findIndex((arg:string) => arg.startsWith('--branch='));
+        const profileOptionIndex = process.argv.findIndex((arg: string) => arg.startsWith('--profile='));
+        const profileName = profileOptionIndex !== -1 ? process.argv[profileOptionIndex].split('=')[1] : 'default';
+
+        this.loadProfileFromPath(`${process.env.HOME}/gac/.profile`, profileName);
 
         let versionBump = undefined;
         let newBranch = undefined;
@@ -150,6 +148,59 @@ class GPTAutoCommitter {
         return `Jire Ticket ID: ${issueId}\n${data.fields.summary}\n${data.fields.description}, link: https://${this.jiraDomain}.atlassian.net/browse/${issueId}`;
     }
 
+    private loadProfileFromPath(profilePath: string, profileName: string = 'default'): void {
+        try {
+            const profileData = fs.readFileSync(profilePath, 'utf8');
+            const profiles = this.parseIniFile(profileData);
+
+            const selectedProfile = profiles[profileName];
+
+            if (!selectedProfile) {
+                console.error(`Profile '${profileName}' not found in ${profilePath}.`);
+                return;
+            }
+
+            this.setEnvVariableFromProfile('JIRA_EMAIL', selectedProfile.jiraEmail);
+            this.setEnvVariableFromProfile('JIRA_API_KEY', selectedProfile.jiraApiKey);
+            this.setEnvVariableFromProfile('JIRA_DOMAIN', selectedProfile.jiraDomain);
+            this.setEnvVariableFromProfile('GITHUB_ACCESS_TOKEN', selectedProfile.githubAccessToken);
+            this.setEnvVariableFromProfile('OPENAI_API_KEY', selectedProfile.openaiApiKey);
+            this.setEnvVariableFromProfile('OPENAI_MODEL', selectedProfile.openaiModel, 'gpt-3.5-turbo-1106');
+
+            console.log(`Profile configuration for '${profileName}' loaded from ${profilePath}.`);
+        } catch (error) {
+            console.error(`Error loading profile configuration from ${profilePath}:`, error);
+        }
+    }
+
+    private setEnvVariableFromProfile(key: string, profileValue: string | undefined, defaultValue?: string): void {
+        process.env[key] = profileValue || process.env[key] || defaultValue || '';
+    }
+
+    private parseIniFile(data: string): Record<string, Record<string, string>> {
+        const lines = data.split('\n');
+        let currentSection: string | null = null;
+        const result: Record<string, Record<string, string>> = {};
+
+        lines.forEach((line) => {
+            const sectionMatch = line.match(/^\[([^\]]+)\]/);
+            if (sectionMatch) {
+                currentSection = sectionMatch[1];
+                result[currentSection] = {};
+            } else if (currentSection) {
+                const keyValueMatch = line.match(/^\s*([^=]+)\s*=\s*(.*)$/);
+                if (keyValueMatch) {
+                    const key = keyValueMatch[1].trim();
+                    const value = keyValueMatch[2].trim();
+                    result[currentSection][key] = value;
+                }
+            }
+        });
+
+        return result;
+    }
+
+
     private async generateOpenAIResponse<T>(prompt: string, maxTokens: number): Promise<T> {
         const gptResponse = await this.openai.chat.completions.create({
             model: this.model,
@@ -197,6 +248,30 @@ class GPTAutoCommitter {
 
     private async pushChanges() {
         await this.execShellCommand(`git push origin HEAD ${process.argv.includes('--force') ? '-f' : ''}`);
+    }
+
+    get jiraEmail(): string | undefined {
+        return this.getEnvVariable('JIRA_EMAIL');
+    }
+
+    get jiraToken(): string | undefined {
+        return this.getEnvVariable('JIRA_API_KEY');
+    }
+
+    get jiraDomain(): string | undefined {
+        return this.getEnvVariable('JIRA_DOMAIN');
+    }
+
+    get githubToken(): string | undefined {
+        return this.getEnvVariable('GITHUB_ACCESS_TOKEN');
+    }
+
+    get model(): string {
+        return this.getEnvVariable('OPENAI_MODEL', 'gpt-3.5-turbo-1106') as string;
+    }
+
+    private getEnvVariable(key: string, defaultValue?: string): string | undefined {
+        return process.env[key] || defaultValue;
     }
 }
 

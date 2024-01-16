@@ -160,13 +160,13 @@ class GPTAutoCommitter {
                 return;
             }
 
-            console.log(selectedProfile)
             this.setEnvVariableFromProfile('JIRA_EMAIL', selectedProfile.jiraEmail);
             this.setEnvVariableFromProfile('JIRA_API_KEY', selectedProfile.jiraApiKey);
             this.setEnvVariableFromProfile('JIRA_DOMAIN', selectedProfile.jiraDomain);
             this.setEnvVariableFromProfile('GITHUB_ACCESS_TOKEN', selectedProfile.githubAccessToken);
             this.setEnvVariableFromProfile('OPENAI_API_KEY', selectedProfile.openaiApiKey);
             this.setEnvVariableFromProfile('OPENAI_MODEL', selectedProfile.openaiModel, 'gpt-3.5-turbo-1106');
+            console.log(this.githubToken)
 
             console.log(`Profile configuration for '${profileName}' loaded from ${profilePath}.`);
         } catch (error) {

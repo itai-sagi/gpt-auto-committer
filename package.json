@@ -1,9 +1,9 @@
 {
   "name": "gpt-auto-committer",
-  "version": "1.0.0",
+  "version": "1.0.5",
   "description": "CLI tool for automating commits & GitHub pull requests using LLMs",
   "bin": {
-    "gac": "./index.ts"
+    "gac": "ts-node ./index.ts"
   },
   "keywords": [
     "git",
@@ -24,13 +24,10 @@
     "start": "ts-node index.ts"
   },
   "dependencies": {
-    "axios": "^0.24.0",
-    "child_process": "^1.0.2",
-    "node-fetch": "^3.0.0",
-    "openai": "^0.10.0",
-    "fs": "^0.0.1",
-    "handlebars": "^4.7.7"
-  },
-  "devDependencies": {
+    "axios": "^1.6.5",
+    "handlebars": "^4.7.7",
+    "node-fetch": "^2.6.10",
+    "openai": "^4.24.0",
+    "ts-node": "^10.9.2"
   }
 }

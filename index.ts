@@ -5,6 +5,12 @@ import {ChangeRequestData, GitHubService} from "./github";
 import * as fs from "fs";
 import * as Handlebars from 'handlebars';
 
+interface JiraIssue {
+    fields: {
+        summary: string;
+        description: string;
+    };
+}
 
 function compileHandlebars(pathToHbs: string) {
     const source = fs.readFileSync(pathToHbs, 'utf8');
@@ -137,7 +143,7 @@ class GPTAutoCommitter {
                 'Accept': 'application/json',
             },
         });
-        const data = await response.json();
+        const data = await response.json() as JiraIssue;
         if (response.status > 299) {
             throw new Error(`Failed getting jira issue: ${response.body}`)
         }

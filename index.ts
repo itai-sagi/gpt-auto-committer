@@ -160,8 +160,6 @@ class GPTAutoCommitter {
                 return;
             }
 
-            console.log(selectedProfile);
-
             this.setEnvVariableFromProfile('JIRA_EMAIL', selectedProfile.jiraEmail);
             this.setEnvVariableFromProfile('JIRA_API_KEY', selectedProfile.jiraApiKey);
             this.setEnvVariableFromProfile('JIRA_DOMAIN', selectedProfile.jiraDomain);

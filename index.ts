@@ -31,7 +31,7 @@ class GPTAutoCommitter {
             throw new Error('No OpenAI API key');
         }
         this.openai = new OpenAI();
-        this.githubService = new GitHubService();
+        this.githubService = new GitHubService(this.githubToken);
         this.templates = {
             prDescription: compileHandlebars(`${__dirname}/prompts/pullRequestDescription.hbs`),
             commitMessage: compileHandlebars(`${__dirname}/prompts/commitMessage.hbs`)
@@ -263,8 +263,10 @@ class GPTAutoCommitter {
         return this.getEnvVariable('JIRA_DOMAIN');
     }
 
-    get githubToken(): string | undefined {
-        return this.getEnvVariable('GITHUB_ACCESS_TOKEN');
+    get githubToken(): string {
+        const token = this.getEnvVariable('GITHUB_ACCESS_TOKEN');
+
+        return token as string;
     }
 
     get model(): string {

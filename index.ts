@@ -42,8 +42,8 @@ class GPTAutoCommitter {
     public async run(): Promise<void> {
         const jiraIssueId = (process.argv[2] || '').startsWith('--') ? null : process.argv[2]; // Optional JIRA issue ID provided as an argument.
         const shouldUpdatePullRequest = process.argv.includes('--update-pr');
-        const versionFlagIndex = process.argv.findIndex(arg => arg.startsWith('--version'));
-        const branchIndex = process.argv.findIndex(arg => arg.startsWith('--branch='));
+        const versionFlagIndex = process.argv.findIndex((arg:string) => arg.startsWith('--version'));
+        const branchIndex = process.argv.findIndex((arg:string) => arg.startsWith('--branch='));
 
         let versionBump = undefined;
         let newBranch = undefined;
@@ -75,12 +75,11 @@ class GPTAutoCommitter {
                 await this.execShellCommand(`git checkout -b ${newBranch}`);
             }
 
-            await this.commitChangesIfNeeded(jiraContent);
-
             if (versionBump){
                 await this.execShellCommand(`npm --no-git-tag-version version ${versionBump}`);
-                this.pushChanges();
             }
+
+            await this.commitChangesIfNeeded(jiraContent);
 
             if (shouldUpdatePullRequest) {
 

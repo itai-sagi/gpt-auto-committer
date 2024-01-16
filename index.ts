@@ -47,7 +47,7 @@ class GPTAutoCommitter {
         const profileOptionIndex = process.argv.findIndex((arg: string) => arg.startsWith('--profile='));
         const profileName = profileOptionIndex !== -1 ? process.argv[profileOptionIndex].split('=')[1] : 'default';
 
-        this.loadProfileFromPath(`${process.env.HOME}/gac/.profile`, profileName);
+        this.loadProfileFromPath(`${process.env.HOME}/.gac/profile`, profileName);
 
         let versionBump = undefined;
         let newBranch = undefined;

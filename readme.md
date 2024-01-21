@@ -73,6 +73,3 @@ openaiModel = gpt-3.5-turbo-1106
 
 ## Customization
 - Make sure to review and customize Handlebars templates in the `./prompts` directory for commit messages and pull request descriptions.
-
-
-test

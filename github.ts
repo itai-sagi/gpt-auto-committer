@@ -16,7 +16,6 @@ export class GitHubService {
     private initialized: boolean = false;
 
     constructor(private readonly githubToken: string) {
-        console.log(this.githubToken)
         this.initializeGitInfo()
     }
 

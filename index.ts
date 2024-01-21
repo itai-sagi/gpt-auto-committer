@@ -51,7 +51,6 @@ class GPTAutoCommitter {
         const versionFlagIndex = process.argv.findIndex((arg:string) => arg.startsWith('--version'));
         const branchIndex = process.argv.findIndex((arg:string) => arg.startsWith('--branch='));
 
-
         let versionBump = undefined;
         let newBranch = undefined;
         if (versionFlagIndex !== -1) {

@@ -31,6 +31,9 @@ class GPTAutoCommitter {
     constructor() {
         const profileOptionIndex = process.argv.findIndex((arg: string) => arg.startsWith('--profile='));
         const profileName = profileOptionIndex !== -1 ? process.argv[profileOptionIndex].split('=')[1] : 'default';
+        if (profileName !== 'default') {
+            this.loadProfileFromPath(`${process.env.HOME}/.gac/profile`, 'default');
+        }
         this.loadProfileFromPath(`${process.env.HOME}/.gac/profile`, profileName);
 
         if (!process.env.OPENAI_API_KEY) {

@@ -51,18 +51,23 @@ openaiApiKey = projectX-openai-api-key
 openaiModel = gpt-3.5-turbo-1106
 ```
 ## Usage
+
 ### Running the Script
-1. Run the script using ts-node:
+1. Install GPT-Auto-Commiter:
    ```bash
-   ts-node <path_to_script>/index.ts <Jira_issue_ID> [--update-pr] [--force] [--version=<version>] [--branch=<branch_name>]
+   npm install gpt-auto-committer
+   ```
+2. Run it
+   ```bash
+   npx gac <Jira_issue_ID> [--update-pr] [--force] [--version=<version>] [--branch=<branch_name>]
    ```
   - `<Jira_issue_ID>`: Optional Jira issue ID.
   - `--update-pr`: Flag to create or update a pull request.
   - `--force`: Flag to force push changes. 
-  - `--version=<version>`: Optional flag to specify the version bump (e.g., `--version=patch/minor/major`). if no version is supplied, it will default to `patch`
-  - `--branch=<branch_name>`: Optional flag to specify a new branch name. 
-  - If on head branch and a jira issue was supplied and no new branch was supplied, a branch will be created as the name of the JIRA Issue.
-
+  - --version=<version>: Optional flag to specify the version bump (e.g., --version=patch/minor/major). 
+  - --branch=<branch_name>: Optional flag to specify a new branch name. 
+  - If on head branch and a jira issue was supplied and no new branch was supplied, a branch will be created in the same name as the jira issue id.
+3. Profit!
 
 ## Functionality
 - **Pull Request Updates:** Updates or creates a pull request with generated descriptions based on Git Diff and optional Jira content.

@@ -12,15 +12,11 @@ export interface GitInfo {
 }
 
 export class GitHubService {
-    private githubToken: string | undefined = process.env.GITHUB_ACCESS_TOKEN;
     private gitInfo: GitInfo | undefined;
     private initialized: boolean = false;
 
-    constructor() {
-        if (!this.githubToken) {
-            throw new Error('No GitHub access token');
-        }
-        this.initializeGitInfo(); // Initialize gitInfo upon instantiation
+    constructor(private readonly githubToken: string) {
+        this.initializeGitInfo()
     }
 
     private async initializeGitInfo() {

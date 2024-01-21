@@ -1,3 +1,5 @@
+#!/usr/bin/env ts-node
+
 import * as child_process from 'child_process';
 import fetch from 'node-fetch';
 import { OpenAI } from 'openai';
@@ -27,11 +29,18 @@ class GPTAutoCommitter {
     };
 
     constructor() {
+        const profileOptionIndex = process.argv.findIndex((arg: string) => arg.startsWith('--profile='));
+        const profileName = profileOptionIndex !== -1 ? process.argv[profileOptionIndex].split('=')[1] : 'default';
+        if (profileName !== 'default') {
+            this.loadProfileFromPath(`${process.env.HOME}/.gac/profile`, 'default');
+        }
+        this.loadProfileFromPath(`${process.env.HOME}/.gac/profile`, profileName);
+
         if (!process.env.OPENAI_API_KEY) {
             throw new Error('No OpenAI API key');
         }
         this.openai = new OpenAI();
-        this.githubService = new GitHubService();
+        this.githubService = new GitHubService(this.githubToken);
         this.templates = {
             prDescription: compileHandlebars(`${__dirname}/prompts/pullRequestDescription.hbs`),
             commitMessage: compileHandlebars(`${__dirname}/prompts/commitMessage.hbs`)
@@ -44,10 +53,6 @@ class GPTAutoCommitter {
         const shouldUpdatePullRequest = process.argv.includes('--update-pr');
         const versionFlagIndex = process.argv.findIndex((arg:string) => arg.startsWith('--version'));
         const branchIndex = process.argv.findIndex((arg:string) => arg.startsWith('--branch='));
-        const profileOptionIndex = process.argv.findIndex((arg: string) => arg.startsWith('--profile='));
-        const profileName = profileOptionIndex !== -1 ? process.argv[profileOptionIndex].split('=')[1] : 'default';
-
-        this.loadProfileFromPath(`${process.env.HOME}/.gac/profile`, profileName);
 
         let versionBump = undefined;
         let newBranch = undefined;
@@ -262,8 +267,10 @@ class GPTAutoCommitter {
         return this.getEnvVariable('JIRA_DOMAIN');
     }
 
-    get githubToken(): string | undefined {
-        return this.getEnvVariable('GITHUB_ACCESS_TOKEN');
+    get githubToken(): string {
+        const token = this.getEnvVariable('GITHUB_ACCESS_TOKEN');
+
+        return token as string;
     }
 
     get model(): string {

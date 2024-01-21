@@ -1,14 +1,16 @@
 # GPTAutoCommitter
 
 ## Overview
-The `GPTAutoCommitter` is a script designed to automate commit creation and pull request updates based on Jira issues. It utilizes the OpenAI GPT-3.5 model to generate commit messages and pull request descriptions.
+The `GPTAutoCommitter` is a script designed to automate commit creation and pull request updates based on Jira issues. It utilizes the OpenAI GPT model to generate commit messages and pull request descriptions, as-well as automating other ops.
 
 ## Prerequisites
 Before using this script, ensure you have the following:
 
 - Node.js installed (with npm)
-- Access to a Jira account with API key
-- GitHub account and personal access token
+- An OpenAI access key
+- GitHub account and personal access token (if creating PRs)
+- Access to a Jira API (if want to use JIRA as additional context)
+
 
 ## Setup
 1. Clone this repository.
@@ -20,10 +22,10 @@ Set the following environment variables:
 
 - `OPENAI_API_KEY`: Your OpenAI API key.
 - `OPENAI_MODEL`: Use a different GPT Model when generating commits & pull-requests (default: gpt-3.5-turbo-1106)
-- `JIRA_EMAIL`: Your Jira account email. (required if supplying issue id)
-- `JIRA_API_KEY`: Your Jira API key. (required if supplying issue id)
-- `JIRA_DOMAIN`: Your Jira domain. (required if supplying issue id)
-- `GITHUB_ACCESS_TOKEN`: Your GitHub personal access token. (required if creating PR)
+- `GITHUB_ACCESS_TOKEN`: Your GitHub personal access token. (required when creating PR)
+- `JIRA_EMAIL`: Your Jira account email. (required when supplying issue id)
+- `JIRA_API_KEY`: Your Jira API key. (required when supplying issue id)
+- `JIRA_DOMAIN`: Your Jira domain. (required when supplying issue id)
 
 ### Profile Configuration
 

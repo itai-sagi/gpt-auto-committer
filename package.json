@@ -1,9 +1,9 @@
 {
   "name": "gpt-auto-committer",
-  "version": "1.0.12",
+  "version": "1.0.14",
   "description": "CLI tool for automating commits & GitHub pull requests using LLMs",
   "bin": {
-    "gac": "ts-node ./index.ts"
+    "gac": "./index.ts"
   },
   "postinstall": "node postinstall.js",
   "keywords": [

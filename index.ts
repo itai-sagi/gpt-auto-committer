@@ -1,3 +1,5 @@
+#!/usr/bin/env ts-node
+
 import * as child_process from 'child_process';
 import fetch from 'node-fetch';
 import { OpenAI } from 'openai';
@@ -27,6 +29,10 @@ class GPTAutoCommitter {
     };
 
     constructor() {
+        const profileOptionIndex = process.argv.findIndex((arg: string) => arg.startsWith('--profile='));
+        const profileName = profileOptionIndex !== -1 ? process.argv[profileOptionIndex].split('=')[1] : 'default';
+        this.loadProfileFromPath(`${process.env.HOME}/.gac/profile`, profileName);
+
         if (!process.env.OPENAI_API_KEY) {
             throw new Error('No OpenAI API key');
         }
@@ -44,10 +50,7 @@ class GPTAutoCommitter {
         const shouldUpdatePullRequest = process.argv.includes('--update-pr');
         const versionFlagIndex = process.argv.findIndex((arg:string) => arg.startsWith('--version'));
         const branchIndex = process.argv.findIndex((arg:string) => arg.startsWith('--branch='));
-        const profileOptionIndex = process.argv.findIndex((arg: string) => arg.startsWith('--profile='));
-        const profileName = profileOptionIndex !== -1 ? process.argv[profileOptionIndex].split('=')[1] : 'default';
 
-        this.loadProfileFromPath(`${process.env.HOME}/.gac/profile`, profileName);
 
         let versionBump = undefined;
         let newBranch = undefined;
@@ -166,7 +169,6 @@ class GPTAutoCommitter {
             this.setEnvVariableFromProfile('GITHUB_ACCESS_TOKEN', selectedProfile.githubAccessToken);
             this.setEnvVariableFromProfile('OPENAI_API_KEY', selectedProfile.openaiApiKey);
             this.setEnvVariableFromProfile('OPENAI_MODEL', selectedProfile.openaiModel, 'gpt-3.5-turbo-1106');
-            console.log(this.githubToken)
 
             console.log(`Profile configuration for '${profileName}' loaded from ${profilePath}.`);
         } catch (error) {

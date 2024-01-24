@@ -206,7 +206,7 @@ class GPTAutoCommitter {
     }
 
 
-    private async generateOpenAIResponse<T>(prompt: string, maxTokens: number): Promise<T> {
+    private async generateOpenAIResponse<T>(prompt: string): Promise<T> {
         const gptResponse = await this.openai.chat.completions.create({
             model: this.model,
             messages: [{
@@ -214,7 +214,6 @@ class GPTAutoCommitter {
                 role: 'user',
             }],
             response_format: { type: 'json_object' },
-            max_tokens: maxTokens,
         });
 
         const content = gptResponse.choices[0].message.content || '{}';
@@ -230,14 +229,14 @@ class GPTAutoCommitter {
     private async generatePullRequestDescription(diff: string, jiraContent?: string): Promise<ChangeRequestData> {
         const prompt= this.templates.prDescription({ diff, jiraContent });
 
-        return await this.generateOpenAIResponse<ChangeRequestData>(prompt, 2500);
+        return await this.generateOpenAIResponse<ChangeRequestData>(prompt);
 
     }
 
     private async generateCommitMessage(diff: string, jiraContent?: string): Promise<{ message: string }> {
         const prompt= this.templates.commitMessage({ diff, jiraContent });
 
-        return await this.generateOpenAIResponse<{ message: string }>(prompt, 2500);
+        return await this.generateOpenAIResponse<{ message: string }>(prompt);
     }
 
     private async commitChanges(commitMessage: string): Promise<void> {

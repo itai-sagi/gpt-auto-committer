@@ -55,7 +55,7 @@ openaiModel = gpt-3.5-turbo-1106
 ### Running the Script
 1. Install GPT-Auto-Commiter:
    ```bash
-   npm install gpt-auto-committer
+   npm install gpt-auto-committer -g
    ```
 2. Run it
    ```bash

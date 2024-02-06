@@ -92,7 +92,7 @@ class GPTAutoCommitter {
 
             if (shouldUpdatePullRequest) {
 
-                const updatedDiff = await this.execShellCommand(`git diff ${headBranch} ${this.getCurrentBranch()} -- . ':!**/package-lock.json'`);
+                const updatedDiff = await this.execShellCommand(`git diff ${headBranch} ${this.getCurrentBranch()} -- . ':(exclude)package-lock.json'`);
 
                 const prText = await this.generatePullRequestDescription(updatedDiff, jiraContent);
 

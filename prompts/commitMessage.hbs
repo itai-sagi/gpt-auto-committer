@@ -3,12 +3,13 @@ You are a SW Developer, You are given a git diff and you need to craft a commit 
 - The commit message should be plain text, no markdown or special formatting is allowed, emojis are encouraged
 - It must be a conventional commit message, determine if it's a feat, fix, chore, or otherwise.
 - Use feat ONLY for larger changes which introduce some new functionality, a fix for when fixing and chore for every other type of commit.
-- The commit message should explain the changes to the best of your ability, include most important changes first.
+- The commit message should explain the changes to the best of your ability, include the most important changes first.
 {{#if jiraContent}}
     - The commit message should be relevant to the files committed while referencing the JIRA Issue's content if it's applicable.
     - Even though the jira might be a feature or fix, this specific commit might not be.
 {{/if}}
 
+Branch name: {{{branchName}}}
 
 git diff:
 ========

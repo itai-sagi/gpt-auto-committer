@@ -61,14 +61,12 @@ class GPTAutoCommitter {
             newBranch = process.argv[branchIndex].split('=')[1]
         }
         const headBranch = (await this.execShellCommand("git remote show origin | awk '/HEAD branch/ {print $NF}'")).toString().trim();
-        newBranch = newBranch || (jiraIssueId && this.getCurrentBranch() === headBranch ? jiraIssueId : null);
+        newBranch = newBranch || (jiraIssueId && this.currentBranch === headBranch ? jiraIssueId : null);
 
         console.log(`Running for Jira Issue: ${jiraIssueId || 'N/A'}`);
         console.log(`Should create/update a PR: ${shouldUpdatePullRequest || 'No'}`);
         console.log(`Should bump to version: ${versionBump || 'No'}`);
         console.log(`Switching to a new branch: ${newBranch || 'No'}`);
-
-
 
         try {
             let jiraContent = '';
@@ -91,11 +89,11 @@ class GPTAutoCommitter {
                     throw new Error('No GitHub access token');
                 }
 
-                const updatedDiff = await this.execShellCommand(`git diff ${headBranch} ${this.getCurrentBranch()} -- . ':(exclude)package-lock.json'`);
+                const updatedDiff = await this.execShellCommand(`git diff ${headBranch} ${this.currentBranch} -- . ':(exclude)package-lock.json'`);
 
-                const prText = await this.generatePullRequestDescription(updatedDiff, jiraContent);
+                const prText = await this.generatePullRequestDescription({ diff: updatedDiff, jiraContent, branchName: this.currentBranch });
 
-                const prLink = await new GitHubService(this.githubToken).createOrUpdatePullRequest(this.getCurrentBranch(), prText, headBranch);
+                const prLink = await new GitHubService(this.githubToken).createOrUpdatePullRequest(this.currentBranch, prText, headBranch);
                 console.log(`Link to the PR -> ${prLink}`);
             }
         } catch (error) {
@@ -112,7 +110,7 @@ class GPTAutoCommitter {
             return;
         }
 
-        const commitData = await this.generateCommitMessage(diff, jiraContent);
+        const commitData = await this.generateCommitMessage({ diff, jiraContent, branchName: this.currentBranch });
 
         try {
             await this.commitChanges(commitData.message);
@@ -226,15 +224,15 @@ class GPTAutoCommitter {
         }
     }
 
-    private async generatePullRequestDescription(diff: string, jiraContent?: string): Promise<ChangeRequestData> {
-        const prompt= this.templates.prDescription({ diff, jiraContent });
+    private async generatePullRequestDescription(prContext: { diff: string, jiraContent?: string, branchName: string }): Promise<ChangeRequestData> {
+        const prompt= this.templates.prDescription(prContext);
 
         return await this.generateOpenAIResponse<ChangeRequestData>(prompt, 2500);
 
     }
 
-    private async generateCommitMessage(diff: string, jiraContent?: string): Promise<{ message: string }> {
-        const prompt= this.templates.commitMessage({ diff, jiraContent });
+    private async generateCommitMessage(commitContext: { diff: string, jiraContent?: string, branchName: string }): Promise<{ message: string }> {
+        const prompt= this.templates.commitMessage(commitContext);
 
         return await this.generateOpenAIResponse<{ message: string }>(prompt, 2500);
     }
@@ -245,7 +243,7 @@ class GPTAutoCommitter {
         await this.execShellCommand(`git push origin HEAD ${process.argv.includes('--force') ? '-f' : ''}`);
     }
 
-    private getCurrentBranch(): string {
+    get currentBranch(): string {
         return child_process.execSync('git rev-parse --abbrev-ref HEAD').toString().trim();
     }
 

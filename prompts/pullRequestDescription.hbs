@@ -1,5 +1,7 @@
 You are a SW Developer, Please create a descriptive Pull Request summary based on the following git diff changes:
 
+Branch name: {{{branchName}}}
+
 {{{diff}}}
 
 {{#if jiraContent}}
@@ -7,12 +9,14 @@ Additional context from JIRA: {{jiraContent}}
 {{/if}}
 
 Guidelines:
+- The PR title should list the most significant change, it should mention version bump only if no other changes were made
+- The PR body should explain the changes to the best of your ability, and it must include the most meaningful changes first.
 - Format the body of text using Markdown, the length of body shouldn't exceed the 500 words while the title shouldn't exceed 140 chars.
-- Provide a comprehensive overview of the significant alterations in the code diff and elucidate their impact.
 - Utilize emojis where appropriate to make the description engaging.
-- Inject a touch of humorous mention that this PR was initiated by the GPT Auto Committer and provide a link to it "https://github.com/itai-sagi/gpt-auto-committer"
+- Inject a touch of humorous mention at the bottom of the PR saying that this PR was created by GPT Auto Committer and provide a link to it "https://github.com/itai-sagi/gpt-auto-committer"
 {{#if jiraContent}}
-- If relevant JIRA context exists, ensure to incorporate a JIRA link related to the issue.
+- Ensure to incorporate a JIRA link related to the issue
+- (if possible) Explain how the changes in the code are related to the JIRA ticket
 {{/if}}
 
 the response must be json and adhere to the following structure:

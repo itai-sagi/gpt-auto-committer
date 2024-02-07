@@ -22,7 +22,6 @@ function compileHandlebars(pathToHbs: string) {
 
 class GPTAutoCommitter {
     private openai: OpenAI;
-    private githubService: GitHubService;
     private templates: {
         prDescription: HandlebarsTemplateDelegate<any>,
         commitMessage: HandlebarsTemplateDelegate<any>,
@@ -40,7 +39,6 @@ class GPTAutoCommitter {
             throw new Error('No OpenAI API key');
         }
         this.openai = new OpenAI();
-        this.githubService = new GitHubService(this.githubToken);
         this.templates = {
             prDescription: compileHandlebars(`${__dirname}/prompts/pullRequestDescription.hbs`),
             commitMessage: compileHandlebars(`${__dirname}/prompts/commitMessage.hbs`)
@@ -70,9 +68,7 @@ class GPTAutoCommitter {
         console.log(`Should bump to version: ${versionBump || 'No'}`);
         console.log(`Switching to a new branch: ${newBranch || 'No'}`);
 
-        if (shouldUpdatePullRequest && !this.githubToken) {
-            throw new Error('No GitHub access token');
-        }
+
 
         try {
             let jiraContent = '';
@@ -91,12 +87,15 @@ class GPTAutoCommitter {
             await this.commitChangesIfNeeded(jiraContent);
 
             if (shouldUpdatePullRequest) {
+                if (!this.githubToken) {
+                    throw new Error('No GitHub access token');
+                }
 
                 const updatedDiff = await this.execShellCommand(`git diff ${headBranch} ${this.getCurrentBranch()} -- . ':(exclude)package-lock.json'`);
 
                 const prText = await this.generatePullRequestDescription(updatedDiff, jiraContent);
 
-                const prLink = await this.githubService.createOrUpdatePullRequest(this.getCurrentBranch(), prText, headBranch);
+                const prLink = await new GitHubService(this.githubToken).createOrUpdatePullRequest(this.getCurrentBranch(), prText, headBranch);
                 console.log(`Link to the PR -> ${prLink}`);
             }
         } catch (error) {

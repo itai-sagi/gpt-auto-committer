@@ -1,6 +1,6 @@
 {
   "name": "gpt-auto-committer",
-  "version": "1.0.22",
+  "version": "1.0.23",
   "description": "CLI tool for automating commits & GitHub pull requests using LLMs",
   "bin": {
     "gac": "build/index.js"
@@ -32,5 +32,8 @@
     "node-fetch": "^2.6.10",
     "openai": "^4.24.0",
     "ts-node": "^10.9.2"
-  }
+  },
+  "files": [
+    "build"
+  ]
 }

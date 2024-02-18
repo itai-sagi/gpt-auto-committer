@@ -22,7 +22,7 @@
   ],
   "preferGlobal": true,
   "scripts": {
-    "prepublish": "npm run build",
+    "prepack": "npm run build",
     "start": "ts-node src/index.ts",
     "build": "tsc"
   },

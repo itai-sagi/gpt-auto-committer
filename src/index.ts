@@ -1,5 +1,3 @@
-#!/usr/bin/env ts-node --loader ts-node/esm
-
 import * as child_process from 'child_process';
 import fetch from 'node-fetch';
 import { OpenAI } from 'openai';

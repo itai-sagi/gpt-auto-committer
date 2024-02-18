@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node --loader ts-node/esm
+#!/usr/bin/env node
 
 import * as child_process from 'child_process';
 import fetch from 'node-fetch';
@@ -40,8 +40,8 @@ class GPTAutoCommitter {
         }
         this.openai = new OpenAI();
         this.templates = {
-            prDescription: compileHandlebars(`${__dirname}/prompts/pullRequestDescription.hbs`),
-            commitMessage: compileHandlebars(`${__dirname}/prompts/commitMessage.hbs`)
+            prDescription: compileHandlebars(`${__dirname}/../prompts/pullRequestDescription.hbs`),
+            commitMessage: compileHandlebars(`${__dirname}/../prompts/commitMessage.hbs`)
         };
 
     }

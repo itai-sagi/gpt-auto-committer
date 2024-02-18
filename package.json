@@ -1,6 +1,6 @@
 {
   "name": "gpt-auto-committer",
-  "version": "1.0.23",
+  "version": "1.0.24",
   "description": "CLI tool for automating commits & GitHub pull requests using LLMs",
   "bin": {
     "gac": "build/index.js"
@@ -34,6 +34,7 @@
     "ts-node": "^10.9.2"
   },
   "files": [
-    "build"
+    "build",
+    "prompts"
   ]
 }

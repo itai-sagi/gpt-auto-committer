@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import * as child_process from 'child_process';
 import fetch from 'node-fetch';
 import { OpenAI } from 'openai';

@@ -51,6 +51,7 @@ class GPTAutoCommitter {
         const shouldUpdatePullRequest = process.argv.includes('--update-pr');
         const versionFlagIndex = process.argv.findIndex((arg:string) => arg.startsWith('--version'));
         const branchIndex = process.argv.findIndex((arg:string) => arg.startsWith('--branch='));
+        const baseBranchIndex  = process.argv.findIndex(arg => arg.startsWith('--compare-branch='));
 
         let versionBump = undefined;
         let newBranch = undefined;
@@ -60,15 +61,18 @@ class GPTAutoCommitter {
         if (branchIndex !== -1) {
             newBranch = process.argv[branchIndex].split('=')[1]
         }
-        const headBranch = (await this.execShellCommand("git remote show origin | awk '/HEAD branch/ {print $NF}'")).toString().trim();
-        newBranch = newBranch || (jiraIssueId && this.getCurrentBranch() === headBranch ? jiraIssueId : null);
+       const headBranch = (await this.execShellCommand(
+          "git remote show origin | awk '/HEAD branch/ {print $NF}'"
+        )).toString().trim();
+        compareBranch = compareBranch || headBranch;
+    
+        newBranch     = newBranch || (jiraIssueId && this.getCurrentBranch() === headBranch ? jiraIssueId : null);
 
         console.log(`Running for Jira Issue: ${jiraIssueId || 'N/A'}`);
         console.log(`Should create/update a PR: ${shouldUpdatePullRequest || 'No'}`);
         console.log(`Should bump to version: ${versionBump || 'No'}`);
         console.log(`Switching to a new branch: ${newBranch || 'No'}`);
-
-
+        console.log(`Comparing against branch: ${compareBranch}`);
 
         try {
             let jiraContent = '';
@@ -91,8 +95,7 @@ class GPTAutoCommitter {
                     throw new Error('No GitHub access token');
                 }
 
-                const updatedDiff = await this.execShellCommand(`git diff ${headBranch} ${this.getCurrentBranch()} -- . ':(exclude)package-lock.json'`);
-
+                const updatedDiff = await this.execShellCommand(`git diff ${compareBranch} ${this.getCurrentBranch()} -- . ':(exclude)package-lock.json'`);
                 const prText = await this.generatePullRequestDescription(updatedDiff, jiraContent);
 
                 const prLink = await new GitHubService(this.githubToken).createOrUpdatePullRequest(this.getCurrentBranch(), prText, headBranch);

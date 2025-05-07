@@ -66,7 +66,8 @@ openaiModel = gpt-3.5-turbo-1106
   - `--force`: Optional flag to force push changes. 
   - `--version=<version>`: Optional flag to specify the version bump, when a version isn't supplied, it'll bump patch (e.g., --version=patch/minor/major). 
   - `--branch=<branch_name>`: Optional flag to specify a new branch name. 
-  - `--profile=<branch_name>`: Optional flag to specify while profile to use. 
+  - `--profile=<branch_name>`: Optional flag to specify while profile to use.
+  - `--compare-branch=<branch>`: Diff against this branch (PR target remains the repo’s default).
   - If on head branch and a jira issue was supplied and no new branch was supplied, a branch will be created in the same name as the jira issue id.
 3. Profit!
 
